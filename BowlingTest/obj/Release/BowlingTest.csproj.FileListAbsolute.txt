@@ -1,0 +1,8 @@
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\bin\Release\BowlingTest.dll
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\bin\Release\BowlingTest.pdb
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\bin\Release\Bowling.exe
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\bin\Release\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\bin\Release\Bowling.pdb
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\obj\Release\BowlingTest.csprojResolveAssemblyReference.cache
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\obj\Release\BowlingTest.dll
+C:\Users\Alex\Documents\Visual Studio 2015\Projects\Bowling\BowlingTest\obj\Release\BowlingTest.pdb
