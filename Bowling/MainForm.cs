@@ -1,18 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Bowling
 {
     public partial class MainForm : Form
     {
-        private GameControl gameControl;
 
         public MainForm()
         {
@@ -20,20 +12,60 @@ namespace Bowling
             Init();
         }
 
+        private Control gamesPanel;
+        private ListBox followedPlayersScores;
+
         private void Init()
         {
-            gameControl = new GameControl(new Bowling.Game());
-            
-            this.Controls.Add(gameControl);
-            gameControl.Dock = DockStyle.Fill;
-            //To not be hidden by top panel
-            gameControl.BringToFront();
+            //Adds the players control
+            PlayersControl playersControl = new PlayersControl();
+            this.Controls.Add(playersControl);
+            playersControl.Dock = DockStyle.Top;
+            //listen to the player added event
+            playersControl.PlayerAdded += PlayersControl_PlayerAdded;
+
+            FlowLayoutPanel gamesPanel = new FlowLayoutPanel();
+            Controls.Add(gamesPanel);
+            gamesPanel.Dock = DockStyle.Fill;
+            gamesPanel.AutoScroll = true;
+            gamesPanel.AutoSize = true;
+            gamesPanel.FlowDirection = FlowDirection.TopDown;
+            gamesPanel.WrapContents = false;
+            this.gamesPanel = gamesPanel;
+            gamesPanel.BringToFront();
+
+            ListBox followedPlayersScores = new ListBox();
+            Controls.Add(followedPlayersScores);
+            followedPlayersScores.Dock = DockStyle.Right;
+            followedPlayersScores.Width = Convert.ToInt16(Width * 0.25);
+            this.followedPlayersScores = followedPlayersScores;
         }
 
-        private void restartGameBtn_Click(object sender, EventArgs e)
+        //when ap layer is added, we add a game for this player
+        private void PlayersControl_PlayerAdded(object sender, Player player)
         {
-            this.Controls.Remove(gameControl);
-            Init();
+            GameControl gameControl = new GameControl(GameService.Instance.GetGameForPlayerId(player.Id), player);
+            gamesPanel.Controls.Add(gameControl);
+            gameControl.PlayerSubscription += GameControl_PlayerSubscription;
+        }
+
+        private void GameControl_PlayerSubscription(object sender, Tuple<Player, bool> playerAndSubscribed)
+        {
+            System.Action<int> action = score =>
+            {
+                ControlThreadingHelper.InvokeControlAction(followedPlayersScores, () =>
+                {
+                    followedPlayersScores.Items.Add(playerAndSubscribed.Item1.Name + " score now is " + score);
+                });
+            };
+            if (playerAndSubscribed.Item2)
+            {
+                BowlingService.Instance.Subscribe(playerAndSubscribed.Item1.Id, action);
+            }
+            else
+            {
+                BowlingService.Instance.Unsubscribe(playerAndSubscribed.Item1.Id);
+            }
         }
     }
 }

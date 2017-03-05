@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Bowling
@@ -13,36 +6,45 @@ namespace Bowling
     public partial class GameControl : UserControl
     {
         private Game game;
+        private Player player;
 
-        public GameControl(Game game)
+        public GameControl(Game game, Player player)
         {
             InitializeComponent();
             this.game = game;
+            this.player = player;
             Init();
         }
 
         private void Init()
         {
-            Binding knockedDownPinsTextBoxBinding = new Binding("Visible", game, "Over");
-            knockedDownPinsTextBoxBinding.Format += (sender, args) => args.Value = (bool)args.Value != true;
-            knockedDownPinsTextBoxBinding.ControlUpdateMode = ControlUpdateMode.OnPropertyChanged;
-            knockedDownPinsTextBoxBinding.DataSourceUpdateMode = DataSourceUpdateMode.Never;
-            knockedDownPinsTextBox.DataBindings.Add(knockedDownPinsTextBoxBinding);
-
-            Binding rollBtnBinding = new Binding("Visible", game, "Over");
-            rollBtnBinding.Format += (sender, args) => args.Value = (bool)args.Value != true;
-            rollBtnBinding.ControlUpdateMode = ControlUpdateMode.OnPropertyChanged;
-            rollBtnBinding.DataSourceUpdateMode = DataSourceUpdateMode.Never;
-            rollBtn.DataBindings.Add(rollBtnBinding);
-
-            Binding visibleWhenGameIsOverBinding = new Binding("Visible", game, "Over");
-            visibleWhenGameIsOverBinding.ControlUpdateMode = ControlUpdateMode.OnPropertyChanged;
-            visibleWhenGameIsOverBinding.DataSourceUpdateMode = DataSourceUpdateMode.Never;
-            gameOverLabel.DataBindings.Add(visibleWhenGameIsOverBinding);
+            playerLabel.Text = player.Name;
+            gameOverLabel.Visible = false;
+            game.PropertyChanged += Game_PropertyChanged;
+            unsubscriptionBtn.Visible = false;
 
             foreach (Frame frame in game.frames)
             {
                 framesPanel.Controls.Add(new FrameControl(frame));
+            }
+        }
+
+        private void Game_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName.Equals("Over"))
+            {
+                ControlThreadingHelper.InvokeControlAction(knockedDownPinsTextBox, () =>
+                {
+                    knockedDownPinsTextBox.Visible = !game.Over;
+                });
+                ControlThreadingHelper.InvokeControlAction(rollBtn, () =>
+                {
+                    rollBtn.Visible = !game.Over;
+                });
+                ControlThreadingHelper.InvokeControlAction(gameOverLabel, () =>
+                {
+                    gameOverLabel.Visible = game.Over;
+                });
             }
         }
 
@@ -56,14 +58,47 @@ namespace Bowling
                     MessageBox.Show("Only integers are valid values", "Error");
                     return;
                 }
-                game.roll(Convert.ToInt16(knockedDownPinsTextBox.Text));
-                knockedDownPinsTextBox.Clear();
+                try
+                {
+                    BowlingService.Instance.OnRoll(player.Id, knockedDownPins);
+                    knockedDownPinsTextBox.Clear();
+                }
+                catch (Exception ex)
+                {
+                    knockedDownPinsTextBox.SelectAll();
+                    throw ex;
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error");
             }
             knockedDownPinsTextBox.Focus();
+        }
+
+        public event EventHandler<Tuple<Player, bool>> PlayerSubscription;
+        protected virtual void OnPlayerSubscription(Player player, bool subscribed)
+        {
+            PlayerSubscription?.Invoke(this, new Tuple<Player, bool>(player, subscribed));
+        }
+
+        private void subscriptionBtn_Click(object sender, EventArgs e)
+        {
+            OnPlayerSubscription(player,true);
+            subscriptionBtn.Visible = false;
+            unsubscriptionBtn.Visible = true;
+        }
+
+        private void restartGameBtn_Click(object sender, EventArgs e)
+        {
+            this.game.Restart();
+        }
+
+        private void unsubscriptionBtn_Click(object sender, EventArgs e)
+        {
+            OnPlayerSubscription(player, false);
+            subscriptionBtn.Visible = true;
+            unsubscriptionBtn.Visible = false;
         }
     }
 }

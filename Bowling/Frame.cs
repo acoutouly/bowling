@@ -157,6 +157,14 @@ namespace Bowling
             }            
         }
 
+        public void reset()
+        {
+            FirstOpportunityResult = null;
+            SecondOpportunityResult = null;
+            Bonus = 0;
+            AggregatedAmount = null;
+        }
+
         /////EVENTS PART
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)

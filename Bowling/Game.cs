@@ -52,36 +52,41 @@ namespace Bowling
                 throw new Exception("Game is over");
             }
 
+            Frame currentFrame = currentFrameIndex < FRAMES_QUANTITY ? frames[currentFrameIndex] : null;
+            //We get a bonus callback (or null)
+            BonusCallBack bonusCallBack = currentFrame != null ? currentFrame.roll(knockedDownPins) : null;
+
             //We feed all the callbacks
+            //We put this after the frame.roll call (if any) to make sure the move is valid, if not, frame.roll throws an exception and this is not called
             for (int i = bonusCallBacks.Count - 1; i >= 0; i--)
             {
                 BonusCallBack bcbk = bonusCallBacks[i];
                 //we feed the callback with the bonus
-                bcbk.addBonus(knockedDownPins);
-                //Each callback expects a certain quantity of additional shots, when they are done, the isDone(à method of the callback return true
-                if (bcbk.isDone())
+                if (knockedDownPins <= Frame.MAX_PINS_ON_TRACK)
                 {
-                    //We remove the callback (in order to not keep it in the list for nothing, even if the addBonus method would not do anything anymore)
-                    bonusCallBacks.RemoveAt(i);
+                    bcbk.addBonus(knockedDownPins);
+                    //Each callback expects a certain quantity of additional shots, when they are done, the isDone(à method of the callback return true
+                    if (bcbk.isDone())
+                    {
+                        //We remove the callback (in order to not keep it in the list for nothing, even if the addBonus method would not do anything anymore)
+                        bonusCallBacks.RemoveAt(i);
+                    }
+                }
+                else
+                {
+                    throw new Exception("Cannot knock down more than " + Frame.MAX_PINS_ON_TRACK + " pins");
                 }
             }
 
-            //Playing till the last frame
-            if (currentFrameIndex < FRAMES_QUANTITY)
+            //if bonus callback is not null (strike or spare) we add it to the list
+            if (bonusCallBack != null)
             {
-                Frame currentFrame = frames[currentFrameIndex];
-                //We get a bonus callback (or null)
-                BonusCallBack bonusCallBack = currentFrame.roll(knockedDownPins);
-                //if bonus callback is not null (strike or spare) we add it to the list
-                if (bonusCallBack != null)
-                {
-                    bonusCallBacks.Add(bonusCallBack);
-                }
-                //if we have played all shots for the frame, we go to the next one
-                if (currentFrame.IsDone())
-                {
-                    currentFrameIndex++;
-                }
+                bonusCallBacks.Add(bonusCallBack);
+            }
+            //if we have played all shots for the frame, we go to the next one
+            if (currentFrame != null && currentFrame.IsDone())
+            {
+                currentFrameIndex++;
             }
             Over = isOver();
         }
@@ -110,6 +115,17 @@ namespace Bowling
         private bool isOver()
         {
             return currentFrameIndex == FRAMES_QUANTITY && frames[FRAMES_QUANTITY - 1].IsDone() && bonusCallBacks.Count == 0;
+        }
+
+        public void Restart()
+        {
+            currentFrameIndex = 0;
+            bonusCallBacks.Clear();
+            foreach (Frame frame in frames)
+            {
+                frame.reset();
+            }
+            Over = false;
         }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)

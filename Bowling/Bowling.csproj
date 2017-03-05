@@ -47,6 +47,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BonusCallBack.cs" />
+    <Compile Include="BowlingService.cs" />
+    <Compile Include="ControlThreadingHelper.cs" />
+    <Compile Include="GameService.cs" />
+    <Compile Include="PlayerRollsEvent.cs" />
+    <Compile Include="PlayersControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PlayersControl.Designer.cs">
+      <DependentUpon>PlayersControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Frame.cs" />
     <Compile Include="FrameControl.cs">
       <SubType>UserControl</SubType>
@@ -67,10 +77,15 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Player.cs" />
+    <Compile Include="PlayerService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpareBonusCallBack.cs" />
     <Compile Include="StrikeBonusCallBack.cs" />
+    <EmbeddedResource Include="PlayersControl.resx">
+      <DependentUpon>PlayersControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrameControl.resx">
       <DependentUpon>FrameControl.cs</DependentUpon>
     </EmbeddedResource>
